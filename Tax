@@ -1,0 +1,928 @@
+{/* User Management Modal */}
+      {showUserModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">User Profile</h3>
+              <button onClick={() => setShowUserModal(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="text-center">
+                <User className="w-16 h-16 mx-auto text-gray-400 mb-2" />
+                <h4 className="text-lg font-medium">{currentUser}</h4>
+                <p className="text-sm text-gray-600">Tax Administrator</p>
+              </div>
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium mb-2">Change User:</label>
+                <select
+                  value={currentUser}
+                  onChange={(e) => setCurrentUser(e.target.value)}
+                  className="w-full p-2 border rounded-lg"
+                >
+                  <option value="John Smith">John Smith</option>
+                  <option value="Sarah Johnson">Sarah Johnson</option>
+                  <option value="Mike Davis">Mike Davis</option>
+                  <option value="Emily Rodriguez">Emily Rodriguez</option>
+                  <option value="David Wilson">David Wilson</option>
+                </select>
+              </div>
+              <button
+                onClick={() => setShowUserModal(false)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+              >
+                Update Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Replace Document Modal */}
+      {showReplaceModal && documentToReplace && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Replace Document</h3>
+              <button onClick={() => setShowReplaceModal(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-3 rounded">
+                <p className="text-sm text-gray-600">Replacing:</p>
+                <p className="font-medium">{documentToReplace.name}</p>
+                <p className="text-sm text-gray-500">Current Version: {documentToReplace.version}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">New File</label>
+                <input
+                  type="file"
+                  onChange={(e) => setReplaceDocument(prev => ({ ...prev, file: e.target.files[0] }))}
+                  className="w-full p-2 border rounded-lg"
+                  accept=".pdf,.doc,.docx,.jpg,.png"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Reason for Replacement*</label>
+                <textarea
+                  placeholder="Explain why this document is being replaced..."
+                  value={replaceDocument.reason}
+                  onChange={(e) => setReplaceDocument(prev => ({ ...prev, reason: e.target.value }))}
+                  className="w-full p-2 border rounded-lg h-20"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Update Expiration Date (Optional)</label>
+                <input
+                  type="date"
+                  value={replaceDocument.newExpirationDate}
+                  onChange={(e) => setReplaceDocument(prev => ({ ...prev, newExpirationDate: e.target.value }))}
+                  className="w-full p-2 border rounded-lg"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={replaceDocumentHandler}
+                  disabled={!replaceDocument.file || !replaceDocument.reason}
+                  className="flex-1 bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 disabled:bg-gray-300"
+                >
+                  Replace Document
+                </button>
+                <button
+                  onClick={() => setShowReplaceModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Audit Trail Modal */}
+      {showAuditModal && selectedDocumentAudit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Audit Trail</h3>
+              <button onClick={() => setShowAuditModal(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="mb-4 bg-gray-50 p-3 rounded">
+              <p className="font-medium">{selectedDocumentAudit.name}</p>
+              <p className="text-sm text-gray-600">Current Version: {selectedDocumentAudit.version}</p>
+            </div>
+            <div className="space-y-3">
+              {selectedDocumentAudit.auditTrail.map((entry, index) => (
+                <div key={entry.id} className="border-l-4 border-blue-500 pl-4 py-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-sm">{entry.action}</p>
+                      <p className="text-sm text-gray-600">{entry.details}</p>
+                      <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                        <span>By: {entry.user}</span>
+                        <span>Version: {entry.version}</span>
+                        {entry.previousVersion && (
+                          <span>Previous: v{entry.previousVersion}</span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(entry.timestamp).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-4 border-t">
+              <button
+                onClick={() => setShowAuditModal(false)}
+                className="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}import React, { useState, useEffect } from 'react';
+import { Calendar, FileText, Bell, Upload, Download, Trash2, CheckCircle, Clock, AlertCircle, Plus, X, Mail, Filter, Tag } from 'lucide-react';
+
+const TaxManagementApp = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [tasks, setTasks] = useState([
+    { id: 1, title: 'Q1 Tax Filing', dueDate: '2025-04-15', status: 'pending', type: 'filing' },
+    { id: 2, title: 'W2 Collection', dueDate: '2025-01-31', status: 'completed', type: 'collection' },
+    { id: 3, title: 'Quarterly Estimate Payment', dueDate: '2025-01-15', status: 'in-progress', type: 'payment' }
+  ]);
+  
+  const [documents, setDocuments] = useState([
+    { 
+      id: 1, 
+      name: 'W2_2024.pdf', 
+      category: 'Income Documents', 
+      uploadDate: '2025-01-15', 
+      expirationDate: '2025-12-31',
+      size: '245 KB',
+      description: '2024 W2 from ABC Corp'
+    },
+    { 
+      id: 2, 
+      name: '1099_Contract_Work.pdf', 
+      category: 'Income Documents', 
+      uploadDate: '2025-01-20', 
+      expirationDate: '2025-12-31',
+      size: '198 KB',
+      description: '1099 for freelance work'
+    },
+    { 
+      id: 3, 
+      name: 'Receipt_Office_Supplies.pdf', 
+      category: 'Expense Receipts', 
+      uploadDate: '2025-01-22', 
+      expirationDate: '2032-01-22',
+      size: '156 KB',
+      description: 'Office supplies deduction'
+    }
+  ]);
+
+  const documentCategories = [
+    'Income Documents',
+    'Expense Receipts', 
+    'Tax Returns',
+    'Bank Statements',
+    'Investment Records',
+    'Medical Expenses',
+    'Charitable Donations',
+    'Business Expenses',
+    'Property Records',
+    'Other'
+  ];
+
+  const [notifications, setNotifications] = useState([]);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [showAddDocument, setShowAddDocument] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [newTask, setNewTask] = useState({ title: '', dueDate: '', type: 'filing' });
+  const [newDocument, setNewDocument] = useState({
+    name: '',
+    category: 'Income Documents',
+    expirationDate: '',
+    description: '',
+    file: null
+  });
+  const [emailSettings, setEmailSettings] = useState({
+    email: '',
+    reminderDays: 7,
+    enabled: false
+  });
+
+  // Check for upcoming deadlines and document expirations
+  useEffect(() => {
+    const checkDeadlines = () => {
+      const today = new Date();
+      const newNotifications = [];
+
+      // Check task deadlines
+      const upcomingTasks = tasks.filter(task => {
+        const dueDate = new Date(task.dueDate);
+        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        return daysUntilDue <= 7 && daysUntilDue >= 0 && task.status !== 'completed';
+      });
+
+      upcomingTasks.forEach(task => {
+        const daysUntilDue = Math.ceil((new Date(task.dueDate) - today) / (1000 * 60 * 60 * 24));
+        newNotifications.push({
+          id: `task-${task.id}`,
+          message: `${task.title} is due in ${daysUntilDue} days`,
+          type: 'task',
+          priority: daysUntilDue <= 3 ? 'high' : 'medium'
+        });
+      });
+
+      // Check document expirations
+      const expiringDocs = documents.filter(doc => {
+        const expDate = new Date(doc.expirationDate);
+        const daysUntilExp = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+        return daysUntilExp <= 30 && daysUntilExp >= 0;
+      });
+
+      expiringDocs.forEach(doc => {
+        const daysUntilExp = Math.ceil((new Date(doc.expirationDate) - today) / (1000 * 60 * 60 * 24));
+        newNotifications.push({
+          id: `doc-${doc.id}`,
+          message: `Document "${doc.name}" expires in ${daysUntilExp} days`,
+          type: 'document',
+          priority: daysUntilExp <= 7 ? 'high' : 'medium'
+        });
+      });
+
+      setNotifications(newNotifications);
+    };
+
+    checkDeadlines();
+  }, [tasks, documents]);
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'in-progress': return <Clock className="w-5 h-5 text-blue-500" />;
+      default: return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      'Income Documents': 'bg-blue-100 text-blue-800',
+      'Expense Receipts': 'bg-green-100 text-green-800',
+      'Tax Returns': 'bg-purple-100 text-purple-800',
+      'Bank Statements': 'bg-orange-100 text-orange-800',
+      'Investment Records': 'bg-indigo-100 text-indigo-800',
+      'Medical Expenses': 'bg-red-100 text-red-800',
+      'Charitable Donations': 'bg-pink-100 text-pink-800',
+      'Business Expenses': 'bg-yellow-100 text-yellow-800',
+      'Property Records': 'bg-gray-100 text-gray-800',
+      'Other': 'bg-slate-100 text-slate-800'
+    };
+    return colors[category] || 'bg-gray-100 text-gray-800';
+  };
+
+  const updateTaskStatus = (taskId, newStatus) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ));
+  };
+
+  const addTask = () => {
+    if (newTask.title && newTask.dueDate) {
+      const task = {
+        id: Date.now(),
+        ...newTask,
+        status: 'pending'
+      };
+      setTasks(prev => [...prev, task]);
+      setNewTask({ title: '', dueDate: '', type: 'filing' });
+      setShowAddTask(false);
+    }
+  };
+
+  const deleteTask = (taskId) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setNewDocument(prev => ({
+        ...prev,
+        file: file,
+        name: file.name
+      }));
+      setShowAddDocument(true);
+    }
+  };
+
+  const addDocument = () => {
+    if (newDocument.name && newDocument.category && newDocument.expirationDate) {
+      const doc = {
+        id: Date.now(),
+        name: newDocument.name,
+        category: newDocument.category,
+        uploadDate: new Date().toISOString().split('T')[0],
+        expirationDate: newDocument.expirationDate,
+        size: newDocument.file ? `${Math.round(newDocument.file.size / 1024)} KB` : 'N/A',
+        description: newDocument.description
+      };
+      setDocuments(prev => [...prev, doc]);
+      setNewDocument({
+        name: '',
+        category: 'Income Documents',
+        expirationDate: '',
+        description: '',
+        file: null
+      });
+      setShowAddDocument(false);
+    }
+  };
+
+  const deleteDocument = (docId) => {
+    setDocuments(prev => prev.filter(doc => doc.id !== docId));
+  };
+
+  const sendEmailReminder = () => {
+    if (!emailSettings.email) {
+      alert('Please enter an email address');
+      return;
+    }
+
+    // Simulate email sending
+    const upcomingItems = [
+      ...tasks.filter(task => {
+        const daysUntilDue = Math.ceil((new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+        return daysUntilDue <= emailSettings.reminderDays && task.status !== 'completed';
+      }),
+      ...documents.filter(doc => {
+        const daysUntilExp = Math.ceil((new Date(doc.expirationDate) - new Date()) / (1000 * 60 * 60 * 24));
+        return daysUntilExp <= emailSettings.reminderDays;
+      })
+    ];
+
+    alert(`Email reminder sent to ${emailSettings.email} for ${upcomingItems.length} upcoming items!`);
+    setShowEmailModal(false);
+  };
+
+  const filteredDocuments = selectedCategory === 'All' 
+    ? documents 
+    : documents.filter(doc => doc.category === selectedCategory);
+
+  const renderDashboard = () => (
+    <div className="space-y-6">
+      {/* Notifications */}
+      {notifications.length > 0 && (
+        <div className="space-y-2">
+          {notifications.filter(n => n.priority === 'high').length > 0 && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                <h3 className="text-lg font-medium text-red-800">Urgent Items</h3>
+              </div>
+              {notifications.filter(n => n.priority === 'high').map(notif => (
+                <p key={notif.id} className="text-red-700">{notif.message}</p>
+              ))}
+            </div>
+          )}
+          {notifications.filter(n => n.priority === 'medium').length > 0 && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+              <div className="flex items-center mb-2">
+                <Bell className="w-5 h-5 text-yellow-600 mr-2" />
+                <h3 className="text-lg font-medium text-yellow-800">Upcoming Items</h3>
+              </div>
+              {notifications.filter(n => n.priority === 'medium').map(notif => (
+                <p key={notif.id} className="text-yellow-700">{notif.message}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Status Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-yellow-50 p-4 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-yellow-600 text-sm font-medium">Pending Tasks</p>
+              <p className="text-2xl font-bold text-yellow-800">
+                {tasks.filter(t => t.status === 'pending').length}
+              </p>
+            </div>
+            <AlertCircle className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+        <div className="bg-blue-50 p-4 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-600 text-sm font-medium">In Progress</p>
+              <p className="text-2xl font-bold text-blue-800">
+                {tasks.filter(t => t.status === 'in-progress').length}
+              </p>
+            </div>
+            <Clock className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-600 text-sm font-medium">Completed</p>
+              <p className="text-2xl font-bold text-green-800">
+                {tasks.filter(t => t.status === 'completed').length}
+              </p>
+            </div>
+            <CheckCircle className="w-8 h-8 text-green-500" />
+          </div>
+        </div>
+        <div className="bg-purple-50 p-4 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-600 text-sm font-medium">Documents</p>
+              <p className="text-2xl font-bold text-purple-800">{documents.length}</p>
+            </div>
+            <FileText className="w-8 h-8 text-purple-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white border rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setShowAddTask(true)}
+            className="flex items-center space-x-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50"
+          >
+            <Plus className="w-5 h-5 text-gray-400" />
+            <span>Add New Task</span>
+          </button>
+          <label className="flex items-center space-x-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 cursor-pointer">
+            <Upload className="w-5 h-5 text-gray-400" />
+            <span>Upload Document</span>
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.jpg,.png"
+            />
+          </label>
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="flex items-center space-x-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 hover:bg-orange-50"
+          >
+            <Mail className="w-5 h-5 text-gray-400" />
+            <span>Email Reminders</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border rounded-lg">
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold">Recent Tasks</h3>
+          </div>
+          <div className="p-4 space-y-3">
+            {tasks.slice(0, 3).map(task => (
+              <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center space-x-3">
+                  {getStatusIcon(task.status)}
+                  <div>
+                    <p className="font-medium">{task.title}</p>
+                    <p className="text-sm text-gray-600">Due: {task.dueDate}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                  {task.status.replace('-', ' ')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-lg">
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold">Recent Documents</h3>
+          </div>
+          <div className="p-4 space-y-3">
+            {documents.slice(0, 3).map(doc => (
+              <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center space-x-3">
+                  <FileText className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <p className="font-medium">{doc.name}</p>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(doc.category)}`}>
+                        {doc.category}
+                      </span>
+                      <span className="text-xs text-gray-600">Expires: {doc.expirationDate}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTasks = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Tax Tasks & Reminders</h2>
+        <button
+          onClick={() => setShowAddTask(true)}
+          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Task</span>
+        </button>
+      </div>
+
+      {/* Add Task Modal */}
+      {showAddTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add New Task</h3>
+              <button onClick={() => setShowAddTask(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Task title"
+                value={newTask.title}
+                onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full p-2 border rounded-lg"
+              />
+              <input
+                type="date"
+                value={newTask.dueDate}
+                onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
+                className="w-full p-2 border rounded-lg"
+              />
+              <select
+                value={newTask.type}
+                onChange={(e) => setNewTask(prev => ({ ...prev, type: e.target.value }))}
+                className="w-full p-2 border rounded-lg"
+              >
+                <option value="filing">Tax Filing</option>
+                <option value="payment">Payment</option>
+                <option value="collection">Document Collection</option>
+                <option value="review">Review</option>
+              </select>
+              <div className="flex space-x-2">
+                <button
+                  onClick={addTask}
+                  disabled={!newTask.title || !newTask.dueDate || !newTask.entity}
+                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Add Task
+                </button>
+                <button
+                  onClick={() => setShowAddTask(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tasks List */}
+      <div className="bg-white border rounded-lg">
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-semibold">All Tasks</h3>
+        </div>
+        <div className="divide-y">
+          {tasks.map(task => (
+            <div key={task.id} className="p-4 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {getStatusIcon(task.status)}
+                <div>
+                  <h4 className="font-medium">{task.title}</h4>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>Due: {task.dueDate}</span>
+                    <span className="capitalize">{task.type}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <select
+                  value={task.status}
+                  onChange={(e) => updateTaskStatus(task.id, e.target.value)}
+                  className="text-sm border rounded px-2 py-1"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDocuments = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Document Storage</h2>
+        <label className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer">
+          <Upload className="w-4 h-4" />
+          <span>Upload Document</span>
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            className="hidden"
+            accept=".pdf,.doc,.docx,.jpg,.png"
+          />
+        </label>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex items-center space-x-4 bg-white p-4 rounded-lg border">
+        <Filter className="w-5 h-5 text-gray-500" />
+        <span className="font-medium">Filter by category:</span>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="border rounded px-3 py-1"
+        >
+          <option value="All">All Categories</option>
+          {documentCategories.map(category => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
+        <span className="text-sm text-gray-600">
+          {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Add Document Modal */}
+      {showAddDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add Document Details</h3>
+              <button onClick={() => setShowAddDocument(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Document name"
+                value={newDocument.name}
+                onChange={(e) => setNewDocument(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full p-2 border rounded-lg"
+              />
+              <select
+                value={newDocument.category}
+                onChange={(e) => setNewDocument(prev => ({ ...prev, category: e.target.value }))}
+                className="w-full p-2 border rounded-lg"
+              >
+                {documentCategories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              <div>
+                <label className="block text-sm font-medium mb-1">Expiration Date</label>
+                <input
+                  type="date"
+                  value={newDocument.expirationDate}
+                  onChange={(e) => setNewDocument(prev => ({ ...prev, expirationDate: e.target.value }))}
+                  className="w-full p-2 border rounded-lg"
+                />
+              </div>
+              <textarea
+                placeholder="Description (optional)"
+                value={newDocument.description}
+                onChange={(e) => setNewDocument(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full p-2 border rounded-lg h-20"
+              />
+              <div className="flex space-x-2">
+                <button
+                  onClick={addDocument}
+                  className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+                >
+                  Add Document
+                </button>
+                <button
+                  onClick={() => setShowAddDocument(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Reminder Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Email Reminder Settings</h3>
+              <button onClick={() => setShowEmailModal(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <input
+                type="email"
+                placeholder="Email address"
+                value={emailSettings.email}
+                onChange={(e) => setEmailSettings(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full p-2 border rounded-lg"
+              />
+              <div>
+                <label className="block text-sm font-medium mb-1">Remind me days in advance</label>
+                <select
+                  value={emailSettings.reminderDays}
+                  onChange={(e) => setEmailSettings(prev => ({ ...prev, reminderDays: parseInt(e.target.value) }))}
+                  className="w-full p-2 border rounded-lg"
+                >
+                  <option value={1}>1 day</option>
+                  <option value={3}>3 days</option>
+                  <option value={7}>7 days</option>
+                  <option value={14}>14 days</option>
+                  <option value={30}>30 days</option>
+                </select>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={sendEmailReminder}
+                  className="flex-1 bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700"
+                >
+                  Send Reminder Now
+                </button>
+                <button
+                  onClick={() => setShowEmailModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Documents List */}
+      <div className="bg-white border rounded-lg">
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-semibold">Your Documents</h3>
+        </div>
+        <div className="divide-y">
+          {filteredDocuments.map(doc => {
+            const daysUntilExpiration = Math.ceil((new Date(doc.expirationDate) - new Date()) / (1000 * 60 * 60 * 24));
+            const isExpiringSoon = daysUntilExpiration <= 30 && daysUntilExpiration >= 0;
+            
+            return (
+              <div key={doc.id} className={`p-4 ${isExpiringSoon ? 'bg-yellow-50' : ''}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <FileText className="w-8 h-8 text-blue-500" />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h4 className="font-medium">{doc.name}</h4>
+                        {isExpiringSoon && (
+                          <AlertCircle className="w-4 h-4 text-yellow-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-3 text-sm text-gray-600 mb-1">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(doc.category)}`}>
+                          <Tag className="w-3 h-3 inline mr-1" />
+                          {doc.category}
+                        </span>
+                        <span>Size: {doc.size}</span>
+                        <span>Uploaded: {doc.uploadDate}</span>
+                      </div>
+                      <div className="flex items-center space-x-3 text-sm">
+                        <span className={`${isExpiringSoon ? 'text-yellow-700 font-medium' : 'text-gray-600'}`}>
+                          Expires: {doc.expirationDate}
+                          {isExpiringSoon && ` (${daysUntilExpiration} days)`}
+                        </span>
+                      </div>
+                      {doc.description && (
+                        <p className="text-sm text-gray-500 mt-1">{doc.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button className="text-blue-600 hover:text-blue-800">
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteDocument(doc.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <h1 className="text-2xl font-bold text-gray-900">Tax Management</h1>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowEmailModal(true)}
+                className="flex items-center space-x-2 text-orange-600 hover:text-orange-800"
+              >
+                <Mail className="w-5 h-5" />
+                <span className="hidden sm:inline">Email Reminders</span>
+              </button>
+              {notifications.length > 0 && (
+                <div className="relative">
+                  <Bell className="w-6 h-6 text-yellow-500" />
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    {notifications.length}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Navigation Tabs */}
+        <div className="flex space-x-1 bg-gray-200 rounded-lg p-1 mb-8">
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: CheckCircle },
+            { id: 'tasks', label: 'Tasks & Reminders', icon: Calendar },
+            { id: 'documents', label: 'Documents', icon: FileText }
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'dashboard' && renderDashboard()}
+        {activeTab === 'tasks' && renderTasks()}
+        {activeTab === 'documents' && renderDocuments()}
+      </div>
+    </div>
+  );
+};
+
+export default TaxManagementApp;
